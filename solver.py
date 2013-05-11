@@ -41,7 +41,7 @@ class Solver(object):
         self.wave = np.zeros((4, self.num_mesh, self.na*2))
 
         # Indices: quadrant, x, y, angle
-        self.ang_flux = np.zeros((self.num_mesh, self.num_mesh, self.na*4))
+        self.ang_flux = np.zeros((self.num_mesh, self.num_mesh, 4, self.na))
 
 
     def initializeScalarFluxes(self):
@@ -58,10 +58,11 @@ class Solver(object):
 
                 
                 # Loop over angles for this mesh cell
-                for ang in np.arange(self.na*4):
+                for quad in np.arange(4):
+                    for ang in np.arange(self.na):
                     
-                    self.scalar_flux[y,x] = self.wgt[ang%self.na] * \
-                                            self.ang_flux[y,x,ang]
+                        self.scalar_flux[y,x] = self.wgt[ang] * \
+                                                self.ang_flux[y,x,quad,ang]
 
 
     def convergeScalarFlux(self, num_mesh=15, order=4, max_iters=250, tol=1E-3):
@@ -146,7 +147,6 @@ class Solver(object):
             step_y = +1
             side_x = 1
             side_y = 0
-            offset = 0
             offset_x = 0
             offset_y = 0
         elif quad == 1:
@@ -154,7 +154,6 @@ class Solver(object):
             step_y = -1
             side_x = 3
             side_y = 2
-            offset = self.na*2
             offset_x = self.na
             offset_y = self.na
         elif quad == 2:
@@ -162,7 +161,6 @@ class Solver(object):
             step_y = +1
             side_x = 1
             side_y = 2
-            offset = self.na
             offset_x = self.na
             offset_y = 0
         else:
@@ -170,7 +168,6 @@ class Solver(object):
             step_y = -1
             side_x = 3
             side_y = 0
-            offset = self.na*3
             offset_x = 0
             offset_y = self.na
 
@@ -196,28 +193,27 @@ class Solver(object):
 
                     # offset is for wavefront
                     # no need for offset for ang_flux since quad does it
-                    ang_offset = ang + offset
                     ang_offset_x = ang + offset_x
                     ang_offset_y = ang + offset_y
 
                     # Compute cell-averaged angular flux (diamond difference)
-                    self.ang_flux[y,x,ang_offset] = source
+                    self.ang_flux[y,x,quad,ang] = source
 #                    print 'side_x = %d, x = %d, ang = %d' % (side_x,x,ang)
 #                    print 'self.wave.shape = ' + str(self.wave.shape)
-                    self.ang_flux[y,x,ang_offset] += \
+                    self.ang_flux[y,x,quad,ang] += \
                                              mu*self.wave[side_y,y,ang_offset_y]
-                    self.ang_flux[y,x,ang_offset] += \
+                    self.ang_flux[y,x,quad,ang] += \
                                              eta*self.wave[side_x,x,ang_offset_x]
-                    self.ang_flux[y,x,ang_offset] /= (total_xs + mu + eta)
+                    self.ang_flux[y,x,quad,ang] /= (total_xs + mu + eta)
 
                     # Compute flux on right/left cell edge of next cell
                     self.wave[side_x,x,ang_offset_x] = \
-                                             2.*self.ang_flux[y,x,ang_offset] - \
+                                             2.*self.ang_flux[y,x,quad,ang] - \
                                              self.wave[side_x,x,ang_offset_x]
 
                     # Compute flux on top/bottom cell edge of next cell
                     self.wave[side_y,y,ang_offset_y] = \
-                                             2.*self.ang_flux[y,x,ang_offset] - \
+                                             2.*self.ang_flux[y,x,quad,ang] - \
                                              self.wave[side_y,y,ang_offset_y]
 
         # Reflective boundary conditions
