@@ -55,16 +55,19 @@ class Solver(object):
 
         self.scalar_flux.fill(0.)
 
-        for y in self.mesh:
-            for x in self.mesh:
+        self.scalar_flux = self.wgt[np.newaxis, np.newaxis, np.newaxis,...] * \
+                           self.ang_flux
+
+#        for y in self.mesh:
+#            for x in self.mesh:
 
                 
                 # Loop over angles for this mesh cell
-                for quad in np.arange(4):
-                    for ang in np.arange(self.na):
+#                for quad in np.arange(4):
+#                    for ang in np.arange(self.na):
                     
-                        self.scalar_flux[y,x] += self.wgt[ang] * \
-                                                self.ang_flux[y,x,quad,ang]
+#                        self.scalar_flux[y,x] += self.wgt[ang] * \
+#                                                self.ang_flux[y,x,quad,ang]
 
 
     def convergeScalarFlux(self, num_mesh=15, order=4, max_iters=250, tol=1E-3):
@@ -111,8 +114,6 @@ class Solver(object):
             # Normalize the scalar flux to the average
             self.scalar_flux /= np.average(self.scalar_flux.flatten())
 
-            print 'scalar flux = ' + str(self.scalar_flux)
-            
             # Check for convergence
             eps = np.sqrt(np.sum((self.scalar_flux - self.old_scalar_flux)**2))
                           
@@ -180,11 +181,6 @@ class Solver(object):
                 # Loop over angles for this mesh cell
                 for ang in np.arange(self.na):
 
-#                    print 'y = %d, x = %d, ang = %f' % (y, x, ang)
-#                    print 'mus.shape = ' + str(self.mus.shape)
-
-#                    print 'ang_flux.shape = ' + str(self.ang_flux.shape)
-
                     # Get mu and eta for this angle
                     mu = self.mus[ang]
                     eta = self.etas[ang]
@@ -196,8 +192,6 @@ class Solver(object):
 
                     # Compute cell-averaged angular flux (diamond difference)
                     self.ang_flux[y,x,quad,ang] = source
-#                    print 'side_x = %d, x = %d, ang = %d' % (side_x,x,ang)
-#                    print 'self.wave.shape = ' + str(self.wave.shape)
                     self.ang_flux[y,x,quad,ang] += \
                                              mu*self.wave[side_y,y,ang_offset_y]
                     self.ang_flux[y,x,quad,ang] += \
