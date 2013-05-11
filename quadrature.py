@@ -248,24 +248,24 @@ class LevelSymmetricQuadrature:
                                         1, 0])
 
 
-    def getQuadrature(self, order=4):
+    def getQuadratureSet(self, order=4):
 
         # Initialize a dictionary to contain all of the information for
         # a level-symmetric quadrature of some order (2-24)
         quad = {}
         quad['order'] = order
-        quad['num_polar'] = order / 2
-        quad['num_angles'] = 2 * quad['num_polar'] * \
-                             (2 * quad['num_polar'] + 2) / 8 * 4
-        quad['num_angles_per_octant'] = quad['num_angles'] / 4
+        quad['num polar'] = order / 2
+        quad['num angles'] = 2 * quad['num polar'] * \
+                             (2 * quad['num polar'] + 2) / 8 * 4
+        quad['num angles per octant'] = quad['num angles'] / 4
 
         print 'Generating level-symmetric quadrature with %d angles' \
-            % (quad['num_angles'])
+            % (quad['num angles'])
 
-        quad['mu'] = numpy.zeros(quad['num_angles_per_octant'])
-        quad['eta'] = numpy.zeros(quad['num_angles_per_octant'])
-        quad['xi'] = numpy.zeros(quad['num_angles_per_octant'])
-        quad['weight'] = numpy.zeros(quad['num_angles_per_octant'])
+        quad['mu'] = numpy.zeros(quad['num angles per octant'])
+        quad['eta'] = numpy.zeros(quad['num angles per octant'])
+        quad['xi'] = numpy.zeros(quad['num angles per octant'])
+        quad['weight'] = numpy.zeros(quad['num angles per octant'])
 
         # Loop over all angles in an octant
         m = 0
@@ -275,7 +275,7 @@ class LevelSymmetricQuadrature:
                 quad['mu'][m] = self.att[order][i]
                 quad['eta'][m] = self.att[order][j]
                 quad['xi'][m] = sqrt(1.0 - quad['mu'][m]**2 - quad['eta'][m]**2)
-                quad['weight'][m] = self.wtt[order][self.wtt_loc[order][m]]
+                quad['weight'][m] = self.wtt[order][self.wtt_loc[order][m]] * pi
                 m += 1
 
         return quad

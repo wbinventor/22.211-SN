@@ -6,13 +6,13 @@ quad = quadrature.LevelSymmetricQuadrature()
 
 for order in orders:
 
-    quadrature = quad.getQuadrature(order)
+    quadrature = quad.getQuadratureSet(order)
 
     print '-------------------------------------------------------------'
     print '  mu\t\t  eta\t\t  xi\t\t  weight'
     print '-------------------------------------------------------------'
 
-    for angle in range(quadrature['num_angles_per_octant']):
+    for angle in range(quadrature['num angles per octant']):
 
         print '%f\t%f\t%f\t%f' % (quadrature['mu'][angle], \
                                       quadrature['eta'][angle], \
