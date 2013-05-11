@@ -51,23 +51,13 @@ class Solver(object):
         self.scalar_flux = np.zeros((self.num_mesh, self.num_mesh))
         self.old_scalar_flux = np.ones((self.num_mesh, self.num_mesh))
 
+
     def computeScalarFlux(self):
 
-        self.scalar_flux.fill(0.)
-
-        self.scalar_flux = self.wgt[np.newaxis, np.newaxis, np.newaxis,...] * \
-                           self.ang_flux
-
-#        for y in self.mesh:
-#            for x in self.mesh:
-
-                
-                # Loop over angles for this mesh cell
-#                for quad in np.arange(4):
-#                    for ang in np.arange(self.na):
-                    
-#                        self.scalar_flux[y,x] += self.wgt[ang] * \
-#                                                self.ang_flux[y,x,quad,ang]
+        self.scalar_flux = (self.ang_flux * self.wgt[np.newaxis, 
+                                                     np.newaxis, 
+                                                     np.newaxis, :])
+        self.scalar_flux = self.scalar_flux.sum(axis=3).sum(axis=2)
 
 
     def convergeScalarFlux(self, num_mesh=15, order=4, max_iters=250, tol=1E-3):
@@ -193,29 +183,29 @@ class Solver(object):
                     # Compute cell-averaged angular flux (diamond difference)
                     self.ang_flux[y,x,quad,ang] = source
                     self.ang_flux[y,x,quad,ang] += \
-                                             mu*self.wave[side_y,y,ang_offset_y]
+                        mu*self.wave[side_y,y,ang_offset_y]
                     self.ang_flux[y,x,quad,ang] += \
-                                             eta*self.wave[side_x,x,ang_offset_x]
+                        eta*self.wave[side_x,x,ang_offset_x]
                     self.ang_flux[y,x,quad,ang] /= (total_xs + mu + eta)
 
                     # Compute flux on right/left cell edge of next cell
                     self.wave[side_x,x,ang_offset_x] = \
-                                             2.*self.ang_flux[y,x,quad,ang] - \
-                                             self.wave[side_x,x,ang_offset_x]
+                        2.*self.ang_flux[y,x,quad,ang] - \
+                        self.wave[side_x,x,ang_offset_x]
 
                     # Compute flux on top/bottom cell edge of next cell
                     self.wave[side_y,y,ang_offset_y] = \
-                                             2.*self.ang_flux[y,x,quad,ang] - \
-                                             self.wave[side_y,y,ang_offset_y]
+                        2.*self.ang_flux[y,x,quad,ang] - \
+                        self.wave[side_y,y,ang_offset_y]
 
         # Reflective boundary conditions
         if reflect:
             for i in self.mesh:
                 for ang in np.arange(self.na):
                     self.wave[side_x-2,i,ang_offset_x] = \
-                                             self.wave[side_x,i,ang_offset_x]
+                        self.wave[side_x,i,ang_offset_x]
                     self.wave[side_y-2,i,ang_offset_y] = \
-                                             self.wave[side_y,i,ang_offset_y]
+                        self.wave[side_y,i,ang_offset_y]
 
 
     def plotScalarFlux(self, iteration):
