@@ -25,7 +25,9 @@ class Solver(object):
     def initializeMeshCellSources(self):
 
         mesh_cell_area = self.geometry.getMeshCellArea()
-        self.source = self.mesh_stencil / (4. * math.pi * mesh_cell_area)
+        fuel_area = self.geometry.getFuelArea()
+        self.source = self.mesh_stencil * (mesh_cell_area / fuel_area)
+        self.source /= (4. * math.pi)
 
 
     def initializeMeshCellXSData(self):
@@ -61,7 +63,7 @@ class Solver(object):
                 for quad in np.arange(4):
                     for ang in np.arange(self.na):
                     
-                        self.scalar_flux[y,x] = self.wgt[ang] * \
+                        self.scalar_flux[y,x] += self.wgt[ang] * \
                                                 self.ang_flux[y,x,quad,ang]
 
 
@@ -104,10 +106,6 @@ class Solver(object):
             self.transportSweep()
             
             # Compute scalar flux from angular fluxes
-#            self.scalar_flux = (self.ang_flux * self.wgt[np.newaxis, 
-#                                                         np.newaxis, 
-#                                                         np.newaxis, :])
-#            self.scalar_flux = self.scalar_flux.sum(axis=0).sum(axis=2)
             self.computeScalarFlux()
 
             # Normalize the scalar flux to the average
@@ -233,5 +231,8 @@ class Solver(object):
                    np.linspace(0, self.geometry.pitch, self.num_mesh+1),
                    self.scalar_flux)        
         plt.axis([0, self.geometry.getPitch(), 0, self.geometry.getPitch()])
+        
         plt.title('SN Pin Cell Flux (iteration ' + str(iteration)  +')')
-        plt.savefig('flux-iter-' + str(iteration) + '.png')
+
+        suffix = '-order-' + str(self.quad_order) + '-iter-' + str(iteration)
+        plt.savefig('flux' + suffix + '.png')
